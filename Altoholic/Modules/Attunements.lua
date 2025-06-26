@@ -34,9 +34,9 @@ local attunements = {
 	{   id = "8791",  name = "The Head of Ossirian", item = "" },
 	{	id = "7781",  name = "Head of Nefarian (A)",  item = "" },
 	{	id = "7783",  name = "Head of Nefarian (H)",  item = "" },
+	{	id = "8802",  name = "Eye of C'thun",  item = "" },
 	{	id = "40963",  name = "Head of Solnius",  item = "" },
 	{	id = "41038",  name = "The Claw of Erennius",  item = "" },
-
 
 }
 
