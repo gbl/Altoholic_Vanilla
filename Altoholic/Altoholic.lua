@@ -887,6 +887,7 @@ function Altoholic:CHAT_MSG_ADDON(a1, a2)
 		end
 		-- debugQuestsComplete(completedQuests)
 		c.CompletedQuests = completedQuests
+		c.CompletedQuestsLastCheck = time()
 	end
 end
 

@@ -1,5 +1,5 @@
 --[[
-    Lua 5.1 Copyright (C) 1994-2006 Lua.org, PUC-Rio
+	    Lua 5.1 Copyright (C) 1994-2006 Lua.org, PUC-Rio
 ]]
 
 local L = AceLibrary("AceLocale-2.2"):new("Altoholic")
@@ -14,9 +14,13 @@ local ORANGE	= "|cFFFF7F00"
 local attunements = {
 	{	id = "0",     name = "Dungeons", collapsed = false },
 	{   id = "7046",  name = "Maraudon Princess", item = "The Scepter of Celebras"   },
-	{   id = "5505", name = "Scholomance", item = "The Key to Scholomance" },
-	{   id = "40316", name = "Karazan Crypt (A)", item = "Karazan Crypt Key" },
-	{   id = "40309", name = "Karazan Crypt (H)", item = "Karazan Crypt Key" },
+	{   id = "5505",  name = "Scholomance", item = "The Key to Scholomance" },
+	{   id = "40316|40309", name = "Karazan Crypt", item = "Karazan Crypt Key" },
+
+	{   id = "0",     name = "Weeklies", collapsed = false },
+	{   id = "41888|41891", name = "Small raids", item = "" },
+	{   id = "41897|41890", name = "Dungeons", item = "" },
+	{   id = "41889|41892", name = "Molten Core", item = "" },
 
 	{   id = "0",     name = "Raids" , collapsed = false },
 	{   id = "4743",  name = "Upper BRS", item = "Seal of Ascension" },
@@ -28,17 +32,53 @@ local attunements = {
 	{   id = "40829", name = "Upper Karazan", item = "Upper Karazen Tower Key" },
 
 	{   id = "0",     name = "Boss organ turn ins", collapsed = false },
-	{	id = "7496",  name = "Onyxia's Head (A)",  item = "" },
-	{	id = "7491",  name = "Onyxia's Head (H)",  item = "" },
+	{	id = "7496|7491",  name = "Onyxia's Head",  item = "" },
 	{	id = "8183",  name = "The Heart of Hakkar", item = "" },
 	{   id = "8791",  name = "The Head of Ossirian", item = "" },
-	{	id = "7781",  name = "Head of Nefarian (A)",  item = "" },
-	{	id = "7783",  name = "Head of Nefarian (H)",  item = "" },
+	{	id = "7781|7783",  name = "Head of Nefarian",  item = "" },
 	{	id = "8802",  name = "Eye of C'thun",  item = "" },
 	{	id = "40963",  name = "Head of Solnius",  item = "" },
 	{	id = "41038",  name = "The Claw of Erennius",  item = "" },
-
 }
+
+local function hasAnyQuestComplete(charInfo, questsString)
+
+	if not charInfo then return false end
+	if not charInfo.CompletedQuests then return false end
+
+	local quests = {}
+	-- can't use strsplit as that unpacks
+    string.gsub(questsString, "[^|]+", function(c) quests[table.getn(quests)+1] = c end)
+	for _, quest in quests do
+		-- DEFAULT_CHAT_FRAME:AddMessage("Check if "..quest.." is complete")
+		if charInfo.CompletedQuests[quest] then
+			return true
+		end
+    end
+	return false
+end
+
+local function resetWeeklyQuestsIfExpired(charInfo)
+	if not charInfo then return end
+	if not charInfo.CompletedQuests then return end
+
+	-- code stolen from raid module
+	local basetime = 1663128000 + 86400	-- this is for Nordanaar, every Thu
+	local resetdays = 7
+	local now = time()
+	local passedresets = math.floor((now - basetime) / (resetdays * 86400))
+	local lastreset = basetime + passedresets * resetdays * 86400
+
+	if not charInfo.CompletedQuestsLastCheck or charInfo.CompletedQuestsLastCheck < lastreset then
+		charInfo.CompletedQuests["41888"] = nil
+		charInfo.CompletedQuests["41891"] = nil
+		charInfo.CompletedQuests["41897"] = nil
+		charInfo.CompletedQuests["41890"] = nil
+		charInfo.CompletedQuests["41889"] = nil
+		charInfo.CompletedQuests["41892"] = nil
+	end
+
+end
 
 function Altoholic:Attunements_Update()
 
@@ -49,6 +89,11 @@ function Altoholic:Attunements_Update()
 	local i = 1
 
 	local byLevel = Altoholic:Get_Sorted_Character_List(V.faction, V.realm)
+	for _, CharacterName in byLevel do
+		local c = self.db.account.data[V.faction][V.realm].char[CharacterName]
+		resetWeeklyQuestsIfExpired(c)
+	end
+
 	for _, CharacterName in byLevel do
 		-- DEFAULT_CHAT_FRAME:AddMessage("Handling "..CharacterName)
 		local c = self.db.account.data[V.faction][V.realm].char[CharacterName]
@@ -128,7 +173,7 @@ function Altoholic:Attunements_Update()
 					local itemName = entry.. i .. "Item" .. j;
 					local itemButton = getglobal(itemName);
                     if itemButton == nil then break end
-					if c.CompletedQuests and c.CompletedQuests[line.id] then
+					if hasAnyQuestComplete(c, line.id) then
 						getglobal(itemName .. "Name"):SetText("ok")
 						itemButton.CharName = CharacterName
 						itemButton:Show()
@@ -153,7 +198,6 @@ function Altoholic:Attunements_Update()
 		i = i + 1
 	end
 	FauxScrollFrame_Update(getglobal(frame.."ScrollFrame"), VisibleCount, VisibleLines, 41);
-
 end
 
 function Altoholic:Attunements_Toggle(id)
