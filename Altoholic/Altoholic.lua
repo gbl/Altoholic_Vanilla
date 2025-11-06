@@ -844,6 +844,10 @@ end
 
 local QuestQueryTime = 0
 function Altoholic:UpdateQuests()
+	-- need to clear them here as to not set the questquerytime before
+	-- the weeklies code removes them
+	local c = self.db.account.data[V.faction][V.realm].char[V.player]
+	Altoholic:ResetWeeklyQuestsIfExpired(c)
 	QuestQueryTime = GetTime()
 	SendChatMessage(".queststatus", "GUILD")
 end
@@ -872,6 +876,8 @@ local function debugQuestsComplete(completedQuests)
 		DEFAULT_CHAT_FRAME:AddMessage("Drakefire Amulet incomplete")
 	end
 end
+
+-- called from the server when .queststatus is running
 
 function Altoholic:CHAT_MSG_ADDON(a1, a2)
 	-- If we have many quests completed we'll get more than one chat line.

@@ -58,7 +58,7 @@ local function hasAnyQuestComplete(charInfo, questsString)
 	return false
 end
 
-local function resetWeeklyQuestsIfExpired(charInfo)
+function Altoholic:ResetWeeklyQuestsIfExpired(charInfo)
 	if not charInfo then return end
 	if not charInfo.CompletedQuests then return end
 
@@ -91,7 +91,7 @@ function Altoholic:Attunements_Update()
 	local byLevel = Altoholic:Get_Sorted_Character_List(V.faction, V.realm)
 	for _, CharacterName in byLevel do
 		local c = self.db.account.data[V.faction][V.realm].char[CharacterName]
-		resetWeeklyQuestsIfExpired(c)
+		Altoholic:ResetWeeklyQuestsIfExpired(c)
 	end
 
 	for _, CharacterName in byLevel do
